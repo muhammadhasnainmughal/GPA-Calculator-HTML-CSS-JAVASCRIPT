@@ -88,7 +88,6 @@ Example:
 
    * Per-subject Grade & GPA
    * Overall GPA
-   * GPA Chart
 
 ---
 
