@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPA Calculator</title>
+
+<style>
+:root{
+--bg:#f4f6fb;--card:#fff;--text:#222;--accent:#5a67d8;
+}
+body.dark{
+--bg:#0f172a;--card:#1e293b;--text:#e5e7eb;--accent:#38bdf8;
+}
+*{box-sizing:border-box;font-family:Segoe UI,sans-serif}
+body{
+margin:0;background:var(--bg);color:var(--text);
+display:flex;justify-content:center;padding:15px;
+}
+.container{max-width:750px;width:100%}
+.brand{text-align:center;font-size:25px;font-weight:bold; margin-bottom: 20px;}
+.card{
+background:var(--card);padding:18px;border-radius:16px;
+box-shadow:0 15px 30px rgba(0,0,0,.15);
+}
+.subject{
+display:grid;
+grid-template-columns:1.2fr 1fr 1fr 1fr auto;
+gap:8px;margin-bottom:10px;
+}
+.subject input,.subject select{
+padding:8px;border-radius:8px;border:1px solid #ccc;
+}
+button{
+width:100%;padding:12px;border:none;border-radius:12px;
+background:var(--accent);color:#fff;cursor:pointer;margin-top:6px;
+}
+.remove{
+background:#dc2626;
+padding:8px 10px;
+border-radius:8px;
+font-size:14px;
+color: white;
+}
+.loader{text-align:center;display:none;margin-top:10px}
+.spinner{
+width:28px;height:28px;border:4px solid #ccc;
+border-top:4px solid var(--accent);
+border-radius:50%;animation:spin 1s linear infinite;margin:auto;
+}
+@keyframes spin{100%{transform:rotate(360deg)}}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{text-align:center;padding:6px;border-bottom:1px solid #ccc}
+@media(max-width:520px){.subject{grid-template-columns:1fr}}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="brand">
+GPA Calculator </div>
+
+<div class="card">
+
+<div id="subjects">
+<div class="subject">
+<input placeholder="Subject Name">
+
+<select onchange="changeType(this)">
+<option value="theory">Theory (100)</option>
+<option value="practical">Practical (50)</option>
+</select>
+
+<input type="number" placeholder="Marks" max="100">
+<input type="number" placeholder="Credit Hours">
+
+<button class="remove" onclick="removeSubject(this)">❌</button>
+</div>
+</div>
+
+<button onclick="addSubject()">+ Add Subject</button>
+<button onclick="calculate()">Calculate GPA</button>
+
+<div class="loader" id="loader">
+<div class="spinner"></div>Calculating...
+</div>
+
+<div id="result"></div>
+
+</div>
+<div style="font-size:13px; text-align: center; color: gray; margin-top: 10px; font-weight: bold;">Design & Developed by Muhammad Hasnain Mughal</div>
+</div>
+
+<script>
+function addSubject(){
+let d=document.createElement("div");
+d.className="subject";
+d.innerHTML=`
+<input placeholder="Subject Name">
+<select onchange="changeType(this)">
+<option value="theory">Theory (100)</option>
+<option value="practical">Practical (50)</option>
+</select>
+<input type="number" placeholder="Marks" max="100">
+<input type="number" placeholder="Credit Hours">
+<button class="remove" onclick="removeSubject(this)">❌</button>
+`;
+document.getElementById("subjects").appendChild(d);
+}
+
+function removeSubject(btn){
+btn.parentElement.remove();
+}
+
+function changeType(sel){
+let marksInput=sel.parentElement.children[2];
+if(sel.value==="practical"){
+marksInput.max=50;
+marksInput.placeholder="Marks (0–50)";
+}else{
+marksInput.max=100;
+marksInput.placeholder="Marks (0–100)";
+}
+marksInput.value="";
+}
+
+function theoryGrade(m){
+if(m>=93) return {g:"A",gp:4.00};
+if(m>=87) return {g:"A-",gp:3.67};
+if(m>=82) return {g:"B+",gp:3.33};
+if(m>=77) return {g:"B",gp:3.00};
+if(m>=72) return {g:"B-",gp:2.67};
+if(m>=68) return {g:"C+",gp:2.30};
+if(m>=64) return {g:"C",gp:2.00};
+if(m>=60) return {g:"C-",gp:1.67};
+return {g:"F",gp:0.00};
+}
+
+function practicalGrade(m){
+if(m>=46) return {g:"A",gp:4.00};
+if(m>=44) return {g:"A-",gp:3.67};
+if(m>=42) return {g:"B+",gp:3.33};
+if(m>=39) return {g:"B",gp:3.00};
+if(m>=37) return {g:"B-",gp:2.67};
+if(m>=35) return {g:"C+",gp:2.30};
+if(m>=32) return {g:"C",gp:2.00};
+if(m>=30) return {g:"C-",gp:1.67};
+return {g:"F",gp:0.00};
+}
+
+function calculate(){
+document.getElementById("loader").style.display="block";
+document.getElementById("result").innerHTML="";
+
+setTimeout(()=>{
+let subs=document.querySelectorAll(".subject");
+let tp=0,tc=0,rows="";
+
+subs.forEach(s=>{
+let name=s.children[0].value||"-";
+let type=s.children[1].value;
+let marks=+s.children[2].value||0;
+let credit=+s.children[3].value||0;
+
+let gi = type==="theory"
+? theoryGrade(marks)
+: practicalGrade(marks);
+
+tp+=gi.gp*credit;
+tc+=credit;
+
+rows+=`
+<tr>
+<td>${name}</td>
+<td>${type}</td>
+<td>${marks}</td>
+<td>${gi.g}</td>
+<td>${gi.gp}</td>
+</tr>`;
+});
+
+document.getElementById("loader").style.display="none";
+
+if(tc===0){
+document.getElementById("result").innerText="⚠ Enter valid data";
+return;
+}
+
+let gpa=(tp/tc).toFixed(2);
+
+document.getElementById("result").innerHTML=`
+<table>
+<tr>
+<th>Subject</th><th>Type</th><th>Marks</th><th>Grade</th><th>GPA</th>
+</tr>
+${rows}
+</table>
+<div style="text-align:center;margin-top:10px;">
+<b style="color:green;">Overall GPA: ${gpa}</b>
+</div>`;
+},800);
+}
+</script>
+</body>
+</html>
